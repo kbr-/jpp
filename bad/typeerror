@@ -1,0 +1,6 @@
+let foldl fun acc list =
+    if empty list then acc
+                  else foldl fun (fun acc (head list)) (tail list);
+
+-- poprawnie byłoby "flip (:)" zamiast "(:)"
+foldl (:) [] [1,2,3];

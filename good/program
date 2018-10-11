@@ -1,0 +1,105 @@
+-- conditional instructions, recursion
+let fact n =
+    if n == 0 then 1
+              else n * fact (n - 1);
+-- printing
+fact 5;
+
+-- anonymous lambda functions can also use recursion if they are assigned to something
+let fib = \n -> if n == 0 then 0 else if n == 1 then 1 else fib (n - 1) + fib (n - 2);
+fib 7;
+
+-- higher order functions, we can also pass operators
+let flip f x y = f y x;
+(-) 1 2;
+flip (-) 1 2;
+
+-- "partial call" (actually all functions are single-argument)
+let flippedMinus = flip (-);
+flippedMinus 1 2;
+
+let foldl fun acc list =
+    if empty list then acc
+                  else foldl fun (fun acc (head list)) (tail list);
+
+let foldr fun init list =
+    if empty list then init
+                  else fun (head list) (foldr fun init (tail list));
+
+let sum = foldr (+) 0;
+let ten = sum [1, 2, 3, 4]; -- nice lists
+ten;
+
+let reverse = foldl (flip (:)) [];
+reverse [1, 2, 3];
+
+[];
+(:) 1 [2];
+let cons1 = (:) 1;
+cons1 [3];
+flip (:) [1] 2;
+
+-- we can define our own operators (they bind weakly)
+let ($) f x = f x;
+"fact $:";
+fact 2 + 3;
+fact $ 2 + 3;
+
+let (.) f g x = f (g x);
+let F = \x -> x * 2;
+let G = \x -> x + 1;
+"F:";
+F 5;
+"G:";
+G 5;
+"F . G:";
+(F . G) 5; -- 12
+"G . F:";
+(G . F) 5; -- 11
+
+-- there are no logical operators in the language? No problem:
+let not a = if a then False else True;
+let (&&) a b = if a then b else False;
+let (||) a b = if not a then b else True;
+"not:";
+not True;
+not False;
+"&&:";
+True && True;
+True && False;
+False && True;
+False && False;
+"||:";
+True || True;
+True || False;
+False || True;
+False || False;
+
+let and = foldl (&&) True;
+let or = foldl (||) False;
+"and:";
+and [True, True, True]; -- True
+and [True, False, True]; -- False
+"or:";
+or [True, False, True]; -- True
+or [False, False, False]; -- False
+
+-- operators are just ordinary functions, we can compose them with other functions
+let any pred = foldr ((||) . pred) False;
+let all pred = foldr ((&&) . pred) True;
+"any:";
+any ((>) 2) [1, 2, 1]; -- True
+any ((>) 1) [1, 2, 3]; -- False
+"all:";
+all ((>) 2) [1, 0, 1]; -- True
+all ((>) 2) [1, 2, 1]; -- False
+
+let map fun = foldr ((:) . fun) [];
+"map:";
+map (\x -> x + 1) [1, 2, 3];
+
+let filter pred =
+    let step = \x acc -> if pred x then x:acc else acc in
+    foldr step [];
+"filter:";
+filter (\x -> x > 2) [1, 2, 3, 4];

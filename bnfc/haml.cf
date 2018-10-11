@@ -1,0 +1,73 @@
+comment "--" ;
+
+Prog.   Program ::= [TopExp] ;
+
+terminator TopExp ";" ;
+
+TExp.    TopExp ::= Exp ;
+TLet.    TopExp ::= "let" LBind ;
+
+ELet.    Exp  ::= "let" [LBind] "in" Exp ;
+ELam.    Exp  ::= "\\" Param [Param] "->" Exp ; -- since [Param] can be empty
+EIf.     Exp  ::= "if" Exp "then" Exp "else" Exp ;
+EIOp.    Exp1 ::= Exp1 IOp1 Exp2 ;
+EIOp.    Exp2 ::= Exp2 IOp2 Exp3 ;
+EUOp.    Exp2 ::= UOp Exp2 ;
+EIOp.    Exp3 ::= Exp3 IOp3 Exp4 ;
+EIOp.    Exp4 ::= Exp4 IOp4 Exp5 ;
+ECall.   Exp5 ::= Exp6 [Exp6] ; -- thanks to coercions, "(" Exp ")" works too 
+EName.   Exp6 ::= Name ;
+EConst.  Exp6 ::= Const ;
+EList.   Exp6 ::= "[" [Exp] "]" ;
+
+coercions Exp 6 ;
+
+NIdent.  Name ::= Ident ;
+NOp.     Name ::= "(" IOp ")" ;
+
+LBind.   LBind ::= Name [Param] "=" Exp ;
+
+PIdent.  Param ::= Ident ;
+PWildc.  Param ::= "_" ;
+
+terminator Param "" ;
+terminator nonempty Exp6 "" ;
+separator  nonempty Exp "," ; -- we require nonempty and treat "[]" as a constant
+                              -- because an LBNF list defined with the separator macro
+                              -- which is allowed to be empty can actually be terminated
+                              -- with the separator. See LBNF-report section 7.1.
+separator  nonempty LBind "," ;
+
+IOCust.  IOp1 ::= SIdent ;
+-- you can't define custom unary operators. Sorry.
+
+IOLt.    IOp2 ::= "<" ;
+IOGt.    IOp2 ::= ">" ;
+IOLte.   IOp2 ::= "<=" ;
+IOGte.   IOp2 ::= ">=" ;
+IOEq.    IOp2 ::= "==" ;
+IOCons.  IOp2 ::= ":" ;
+
+IOPlus.  IOp3 ::= "+" ;
+IOMinus. IOp3 ::= "-" ;
+
+IOMul.   IOp4 ::= "*" ;
+IODiv.   IOp4 ::= "/" ;
+
+UOMinus. UOp  ::= "-" ;
+
+-- not using coercions because we don't want the "(" ... ")" rule
+_.       IOp  ::= IOp1 ;
+_.       IOp1 ::= IOp2 ;
+_.       IOp2 ::= IOp3 ;
+_.       IOp3 ::= IOp4 ;
+
+CStr.    Const ::= String ;
+CInt.    Const ::= Integer ;
+CBool.   Const ::= AbsBool ;
+CList.   Const ::= "[]" ;
+
+BTrue.   AbsBool ::= "True" ;
+BFalse.  AbsBool ::= "False" ;
+
+token    SIdent ([".$&|"]+) ; -- other special characters can be included
